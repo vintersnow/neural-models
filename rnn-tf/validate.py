@@ -63,6 +63,10 @@ def get_args():
     parser.add_argument('--input_keep_prob', type=float, default=1.0,
                         help='probability of keeping weights '
                         'in the input layer. (Default: 1.0)')
+    parser.add_argument('--train', type=bool, default=True,
+                        help='train the model. (Default: True)')
+    parser.add_argument('--test', type=bool, default=True,
+                        help='test the test data. (Default: True)')
     # parser.add_argument('--init_from', type=str, default=None,
     #                     help="""continue training from saved model at this path. Path must contain files saved by previous training process:
     #                         'config.pkl'        : configuration;
@@ -94,14 +98,16 @@ if __name__ == '__main__':
         test_X = test_X[:size]
         test_y = test_y[:size]
 
-    print('start training')
-    model.train(train_X, train_y)
-    print('end training')
+    if args.train:
+        print('start training')
+        model.train(train_X, train_y)
+        print('end training')
 
-    pred_y = model.predict(test_X)
-    true_y = test_y.tolist()
-    print('pred', pred_y, true_y)
+    if args.test:
+        pred_y = model.predict(test_X)
+        true_y = test_y.tolist()
+        # print('pred', pred_y, true_y)
 
-    print('f1 score: ',
-          f1_score(true_y, pred_y, average='macro'),
-          'validation: %s' % str(args.validate))
+        print('f1 score: ',
+              f1_score(true_y, pred_y, average='macro'),
+              'validation: %s' % str(args.validate))
