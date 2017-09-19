@@ -5,7 +5,7 @@ from tensorflow.contrib import rnn
 import os
 import time
 import numpy as np
-from util import DataLoader
+from utils import DataLoader
 from keras.preprocessing.sequence import pad_sequences
 
 
