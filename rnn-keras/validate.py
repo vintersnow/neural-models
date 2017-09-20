@@ -1,10 +1,4 @@
-# from sklearn.utils import shuffle
-from sklearn.metrics import f1_score
-# from sklearn.model_selection import train_test_split
-# import numpy as np
-# import tensorflow as tf
 from keras.datasets import imdb
-# from keras.preprocessing.sequence import pad_sequences
 import argparse
 
 from model import Model
@@ -43,8 +37,8 @@ def get_args():
                         help='minibatch size. (Default: 50)')
     parser.add_argument('--seq_length', type=int, default=1000,
                         help='RNN sequence length. (Default: 1000)')
-    parser.add_argument('--num_epochs', type=int, default=50,
-                        help='number of epochs. (Default: 50)')
+    parser.add_argument('--num_epochs', type=int, default=5,
+                        help='number of epochs. (Default: 5)')
     # parser.add_argument('--save_every', type=int, default=1000,
     #                     help='save frequency')
     parser.add_argument('--vocab_size', type=int, default=10000,
@@ -67,15 +61,6 @@ def get_args():
                         help='train the model. (Default: True)')
     parser.add_argument('--test', type=bool, default=True,
                         help='test the test data. (Default: True)')
-    # parser.add_argument('--init_from', type=str, default=None,
-    #                     help="""continue training from saved model at this path. Path must contain files saved by previous training process:
-    #                         'config.pkl'        : configuration;
-    #                         'chars_vocab.pkl'   : vocabulary definitions;
-    #                         'checkpoint'        : paths to model file(s) (created by tf).
-    #                                               Note: this file contains absolute paths, be careful when moving files around;
-    #                         'model.ckpt-*'      : file(s) with model definition (created by tf)
-    #                        (Default: None)
-    #                     """)
 
     args = parser.parse_args()
     args.output_size = 2
@@ -85,11 +70,11 @@ def get_args():
 if __name__ == '__main__':
     args = get_args()
 
-    (train_X, train_y), (test_X, test_y) = get_data(args.vocab_size)
-    print('load data')
-
     model = Model(args)
     print('build model')
+
+    (train_X, train_y), (test_X, test_y) = get_data(args.vocab_size)
+    print('load data')
 
     if args.validate:
         size = args.validate_size
@@ -105,10 +90,3 @@ if __name__ == '__main__':
 
     if args.test:
         model.evaluate(test_X, test_y)
-        # pred_y = model.predict(test_X)
-        # true_y = test_y.tolist()
-        # # print('pred', pred_y, true_y)
-        #
-        # print('f1 score: ',
-        #       f1_score(true_y, pred_y, average='macro'),
-        #       'validation: %s' % str(args.validate))

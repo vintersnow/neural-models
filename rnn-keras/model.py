@@ -1,9 +1,12 @@
 # import keras
+from keras.callbacks import TensorBoard
 from keras.models import Sequential
 from keras.layers import Embedding, recurrent, Dense
-from keras.utils import to_categorical
+from keras.utils import to_categorical, plot_model
 from keras.preprocessing.sequence import pad_sequences
 from sklearn.model_selection import train_test_split
+import keras.backend.tensorflow_backend as KTF
+import tensorflow as tf
 
 from utils import Metrics
 
@@ -23,19 +26,37 @@ class Model(object):
         else:
             raise Exception("model type not supported: {}".format(args.model))
 
+        # For TensorBoard
+        self.old_session = KTF.get_session()
+
+        session = tf.Session('')
+        KTF.set_session(session)
+        KTF.set_learning_phase(1)
+
+        # Build Model
         self.model = model = Sequential()
         model.add(Embedding(args.vocab_size, args.rnn_size, mask_zero=True))
-
         model.add(cell_fn(args.rnn_size))
         # model.add(Dense(args.output_size, activation='softmax'))
         model.add(Dense(1, activation='sigmoid'))
+
+        model.summary()
 
         model.compile(optimizer='adam',
                       # loss='categorical_crossentropy',
                       loss='binary_crossentropy',
                       metrics=['accuracy'])
 
+        tb_cb = TensorBoard(log_dir=args.log_dir, histogram_freq=1)
+        metrics = Metrics()
+        self.cbks = [tb_cb, metrics]
+
+    def __del__(self):
+        KTF.set_session(self.old_session)
+
     def train(self, train_x, train_y):
+        KTF.set_learning_phase(1)
+
         args = self.args
         model = self.model
 
@@ -44,8 +65,6 @@ class Model(object):
                                               test_size=0.1, random_state=42)
 
         print('valid_x', valid_x.shape, 'valid_y', valid_y.shape)
-
-        metrics = Metrics()
 
         # one_hot_labels = to_categorical(train_y, num_classes=args.output_size)
         train_x = pad_sequences(train_x, padding='post', value=0)
@@ -57,9 +76,11 @@ class Model(object):
                   epochs=args.num_epochs,
                   batch_size=args.batch_size,
                   validation_data=[valid_x, valid_y],
-                  callbacks=[metrics])
+                  callbacks=self.cbks)
 
     def evaluate(self, test_x, test_y):
+        KTF.set_learning_phase(0)
+
         args = self.args
         model = self.model
 
@@ -72,3 +93,6 @@ class Model(object):
                                batch_size=args.batch_size)
 
         print('score: ', score)
+
+    def plot(self):
+        plot_model(self.model, to_file='model.png', show_shapes=True)
